@@ -2,61 +2,97 @@
 
 ## Loading libraries
 
-```{r}
+
+```r
 library(ggplot2)
 ```
 
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 data <- read.csv("activity.csv", colClasses = c(date = "Date"))
 ```
 
 ## What is mean total number of steps taken per day?
 
-```{r fig.width=5, fig.height=5}
+
+```r
 qplot(date, steps, geom = "histogram", 
       data = data, stat = "identity",
       main = "Total Number of Steps Taken Each Day")
 ```
 
+```
+## Warning: Removed 2304 rows containing missing values (position_stack).
+```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
 ### Mean and Median number of total steps per day
 
-```{r}
+
+```r
 total <- tapply(data$steps, data$date, sum)
 mean(total, na.rm = TRUE)
+```
+
+```
+## [1] 10766
+```
+
+```r
 median(total, na.rm = TRUE)
+```
+
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 intData <- aggregate(steps ~ interval, data, FUN = mean)
 ```
 
-```{r fig.width=5, fig.height=5}
+
+```r
 qplot(interval, steps, data = intData, 
                        geom = "line",
                        main = "Average Steps Taken in Each Interval")
 ```
 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
+
 ### Which 5-minute interval contains the maximum number of steps?
 
-```{r}
+
+```r
 intData[order(-intData$steps),][1,1]
+```
+
+```
+## [1] 835
 ```
 
 ## Imputing missing values
 
 ### Total number of rows with NAs?
 
-```{r}
+
+```r
 nrow(data) - nrow(data[complete.cases(data),])
+```
+
+```
+## [1] 2304
 ```
 
 ### Missing data filled in
 
-```{r}
+
+```r
 data2 <- data
 data2$steps <- sapply(1:nrow(data2), function(x) {
         if (is.na(data2[x,1])) {
@@ -66,34 +102,65 @@ data2$steps <- sapply(1:nrow(data2), function(x) {
         }
     }
 )                      
+     
+#Compare:
+head(data)
+```
+
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
+
+```r
+head(data2)
+```
+
+```
+##     steps       date interval
+## 1 1.71698 2012-10-01        0
+## 2 0.33962 2012-10-01        5
+## 3 0.13208 2012-10-01       10
+## 4 0.15094 2012-10-01       15
+## 5 0.07547 2012-10-01       20
+## 6 2.09434 2012-10-01       25
 ```
 
 ### Histogram, mean, and median of filled dataset
 
-```{r fig.width=5, fig.height=5}
+
+```r
 qplot(date, steps, geom = "histogram", 
       data = data2, stat = "identity",
       main = "Revised Total Number of Steps Taken Each Day")
 ```
 
-```{r}
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
+
+
+```r
 total2 <- tapply(data2$steps, data2$date, sum)
 mean(total2)
+```
+
+```
+## [1] 10766
+```
+
+```r
 median(total2)
 ```
 
+```
+## [1] 10766
+```
+
+
+### Is there an impact of imputing missing data?
+
 ## Are there differences in activity patterns between weekdays and weekends?
-
-```{r}
-data2$day <- sapply(data2$date, function(x) 
-        ifelse(weekdays(x) %in% c("Saturday", "Sunday"), "Weekend", "Weekday"))
-data2$day <- as.factor(data2$day)
-intData2 <- aggregate(steps ~ day + interval, data2, FUN = mean)
-```
-
-```{r fig.width=5, fig.height=5}
-qplot(interval, steps, geom = "line", 
-      facets = day ~ ., data = intData2,
-      main = "Average Steps in Weekdays and Weekends")
-```
-
